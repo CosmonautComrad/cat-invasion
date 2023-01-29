@@ -12,8 +12,14 @@ class Settings:
         self.ship_speed = 1
 
         # Параметры снаряда
-        self.bullet_speed = 0.5
-        self.bullet_width = 3
+        self.bullet_speed = 2
+        self.bullet_width = 4
         self.bullet_height = 15
         self.bullet_color = (0, 0, 0)
-        self.bullets_allowed = 3
+        self.bullets_allowed = 10
+
+        # Настройки котов
+        self.cat_speed = 1.0
+        self.fleet_drop_speed = 10
+        # fleet_direction = 1 это движение вправо; а -1 - влево.
+        self.fleet_direction = 1
