@@ -50,5 +50,12 @@ class Ship:
         self.rect.y = self.y
 
     def blitme(self):
-        """Рисует корабль в текущей позиции."""
+        """Рисует мыш в текущей позиции."""
         self.screen.blit(self.image, self.rect)
+
+    def center_ship(self):
+        """Размещает мыш в центре нижней стороны."""
+
+        self.rect.midbottom = self.screen_rect.midbottom
+        self.x = float(self.rect.x)
+        self.y = float(self.rect.y)

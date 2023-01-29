@@ -1,7 +1,10 @@
 import sys
+from time import sleep
+
 import pygame
 
 from settings import Settings
+from game_stats import GameStats
 from ship import Ship
 from bullet import Bullet
 from cat import Cat
@@ -22,13 +25,36 @@ class AlienInvasion:
 
         self.screen = pygame.display.set_mode((self.settings.screen_width,
                                                self.settings.screen_height))
-        pygame.display.set_caption("Alien Invasion")
+        pygame.display.set_caption("Cat Invasion")
+
+        # Создание экземпляра для хранения игровой статистики.
+        self.stats = GameStats(self)
 
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
         self.cats = pygame.sprite.Group()
 
         self._create_fleet()
+
+    def _ship_hit(self):
+        """Обрабатывает столкновение мыши с пришельцем."""
+        if self.stats.ships_left > 0:
+            # Уменьшение ships_left.
+            self.stats.ships_left -= 1
+
+            # Очистка списков пришельцев и снарядов.
+            self.cats.empty()
+            self.bullets.empty()
+
+            # Создание нового флота и размещение мыши в центре.
+            self._create_fleet()
+            self.ship.center_ship()
+
+            # Пауза
+            sleep(2)
+
+        else:
+            self.stats.game_active = False
 
     def _create_cat(self, cat_number, row_number):
         # Создание кота и размещение его в ряду
@@ -124,8 +150,27 @@ class AlienInvasion:
             new_bullet = Bullet(self)
             self.bullets.add(new_bullet)
 
+    def _check_bullet_cat_collisions(self):
+        """Обработка коллизий снарядов с котами."""
+        collisions = pygame.sprite.groupcollide(self.bullets, self.cats, True, True)
+
+        if not self.cats:
+            # Уничтожение существующих снарядов и создание нового флота.
+            self.bullets.empty()
+            self._create_fleet()
+
+    def _check_cats_bottom(self):
+        """Проверяет, добрались ли коты до нижнего края экрана"""
+        screen_rect = self.screen.get_rect()
+        for cat in self.cats.sprites():
+            if cat.rect.bottom >= screen_rect.bottom:
+                # Происходит то же, что и при столкновении с кораблем.
+                self._ship_hit()
+                break
+
     def _update_bullets(self):
         """Обновляет позиции снарядов и уничтожает старые снаряды."""
+
         """ Проверка попаданий в котов. При обнаружении попадания удалить снаряд и кота
             Вообще говоря, тут должен был быть метод для определения пересечения нескольких прямоугольников, но у
             pygame есть свой метод groupcollide(), который каждый раз, когда между прямоугольником снаряда 
@@ -139,7 +184,7 @@ class AlienInvasion:
             if bullet.rect.bottom <= 0:
                 self.bullets.remove(bullet)
 
-        collisions = pygame.sprite.groupcollide(self.bullets, self.cats, True, True)
+        self._check_bullet_cat_collisions()
 
     def _update_screen(self):
         """Обновляет изображения на экране и отображает новый экран."""
@@ -158,13 +203,23 @@ class AlienInvasion:
         self._check_fleet_edges()
         self.cats.update()
 
+        # Проверка коллизий "кот - мыш".
+        if pygame.sprite.spritecollideany(self.ship, self.cats):
+            print("Got hit!")
+            self._ship_hit()
+
+        # Проверка, добрались ли коты до нижнего края экрана.
+        self._check_cats_bottom()
+
     def run_game(self):
         """Запуск основного цикла игры."""
         while True:
             self._check_events()
-            self.ship.update()
-            self._update_bullets()
-            self._update_cats()
+            if self.stats.game_active:
+                self.ship.update()
+                self._update_bullets()
+                self._update_cats()
+
             self._update_screen()
 
 
