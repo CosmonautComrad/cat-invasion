@@ -137,6 +137,9 @@ class AlienInvasion:
         # Проверка попаданий в котов.
         # При обнаружении попадания удалить снаряд и кота
         collisions = pygame.sprite.groupcollide(self.bullets, self.cats, True, True)
+        for cat in self.cats:
+            print(cat)
+        #print(collisions)
 
     def _update_screen(self):
         """Обновляет изображения на экране и отображает новый экран."""
