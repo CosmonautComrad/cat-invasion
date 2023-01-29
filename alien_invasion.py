@@ -43,7 +43,9 @@ class AlienInvasion:
 
     def _ship_hit(self):
         """Обрабатывает столкновение мыши с котом."""
+
         if self.stats.ships_left > 0:
+
             # Уменьшение ships_left.
             self.stats.ships_left -= 1
 
@@ -54,6 +56,7 @@ class AlienInvasion:
             # Создание нового флота и размещение мыши в центре.
             self._create_fleet()
             self.ship.center_ship()
+
 
             # Пауза
             sleep(2)
@@ -239,6 +242,9 @@ class AlienInvasion:
 
         # Проверка коллизий "кот - мыш".
         if pygame.sprite.spritecollideany(self.ship, self.cats):
+            self.ship.display_RIP()
+            self._update_screen()
+            self.ship.display_mouse()
             self._ship_hit()
 
         # Проверка, добрались ли коты до нижнего края экрана.

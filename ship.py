@@ -11,8 +11,12 @@ class Ship:
         self.settings = ai_game.settings
 
         # Загружает изображение корабля и получает прямоугольник.
-        self.image = pygame.image.load('images/mouse.png')
+        self.mouse_image = pygame.image.load('images/mouse.png')
+        self.image = self.mouse_image
         self.rect = self.image.get_rect()
+
+        # Загружает изображение могилы
+        self.dead_mouse = pygame.image.load('images/RIP.png')
 
         # Каждый новый корабль появляется у нижнего края экрана.
         self.rect.midbottom = self.screen_rect.midbottom
@@ -59,3 +63,11 @@ class Ship:
         self.rect.midbottom = self.screen_rect.midbottom
         self.x = float(self.rect.x)
         self.y = float(self.rect.y)
+
+    def display_RIP(self):
+        """Меняет image на картинку с могилой"""
+        self.image = self.dead_mouse
+
+    def display_mouse(self):
+        """Меняет обратно на картинку с мышой"""
+        self.image = self.mouse_image
