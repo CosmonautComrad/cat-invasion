@@ -5,6 +5,7 @@ import pygame
 
 from settings import Settings
 from game_stats import GameStats
+from button import Button
 from ship import Ship
 from bullet import Bullet
 from cat import Cat
@@ -25,6 +26,7 @@ class AlienInvasion:
 
         self.screen = pygame.display.set_mode((self.settings.screen_width,
                                                self.settings.screen_height))
+        self.bg = pygame.image.load("images/BG.png").convert()
         pygame.display.set_caption("Cat Invasion")
 
         # Создание экземпляра для хранения игровой статистики.
@@ -36,13 +38,16 @@ class AlienInvasion:
 
         self._create_fleet()
 
+        # Создание кнопки Play
+        self.play_button = Button(self, "Play")
+
     def _ship_hit(self):
-        """Обрабатывает столкновение мыши с пришельцем."""
+        """Обрабатывает столкновение мыши с котом."""
         if self.stats.ships_left > 0:
             # Уменьшение ships_left.
             self.stats.ships_left -= 1
 
-            # Очистка списков пришельцев и снарядов.
+            # Очистка списков котов и снарядов.
             self.cats.empty()
             self.bullets.empty()
 
@@ -55,6 +60,7 @@ class AlienInvasion:
 
         else:
             self.stats.game_active = False
+            pygame.mouse.set_visible(True)
 
     def _create_cat(self, cat_number, row_number):
         # Создание кота и размещение его в ряду
@@ -131,6 +137,10 @@ class AlienInvasion:
             elif event.type == pygame.KEYUP:
                 self._check_keyup_events(event)
 
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mous_pos = pygame.mouse.get_pos()
+                self._check_play_button(mous_pos)
+
     def _change_fleet_direction(self):
         """Опускает весь котофлот и меняет его направление"""
         for cat in self.cats.sprites():
@@ -168,6 +178,25 @@ class AlienInvasion:
                 self._ship_hit()
                 break
 
+    def _check_play_button(self, mouse_pos):
+        """Запускает новую игру при нажатии кнопки Play."""
+        button_clicked = self.play_button.rect.collidepoint(mouse_pos)
+        if button_clicked and not self.stats.game_active:
+            # Сброс игровой статистики.
+            self.stats.reset_stats()
+            self.stats.game_active = True
+
+            # Очистка списков котов и снарядов
+            self.cats.empty()
+            self.bullets.empty()
+
+            # Создание нового флота и размещение мыша в центре.
+            self._create_fleet()
+            self.ship.center_ship()
+
+            # Указатель мыши скрывается.
+            pygame.mouse.set_visible(False)
+
     def _update_bullets(self):
         """Обновляет позиции снарядов и уничтожает старые снаряды."""
 
@@ -188,11 +217,16 @@ class AlienInvasion:
 
     def _update_screen(self):
         """Обновляет изображения на экране и отображает новый экран."""
-        self.screen.fill(self.settings.bg_color)
+        # self.screen.fill(self.settings.bg_color)
+        self.screen.blit(self.bg, (0, 0))
         self.ship.blitme()
         for bullet in self.bullets.sprites():
             bullet.draw_bullet()
         self.cats.draw(self.screen)
+
+        # Кнопка Play отображается в том случае, если игра неактивна.
+        if not self.stats.game_active:
+            self.play_button.draw_button()
 
         # Отображение последнего прорисованного экрана.
         pygame.display.flip()
@@ -205,7 +239,6 @@ class AlienInvasion:
 
         # Проверка коллизий "кот - мыш".
         if pygame.sprite.spritecollideany(self.ship, self.cats):
-            print("Got hit!")
             self._ship_hit()
 
         # Проверка, добрались ли коты до нижнего края экрана.
