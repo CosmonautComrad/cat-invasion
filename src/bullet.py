@@ -10,11 +10,11 @@ class Bullet(Sprite):
         super().__init__()
         self.screen = game.screen
         self.settings = game.settings
-        self.color = self.settings.bullet_color
 
         # Creating a projectile at position (0, 0) and assigning the correct position.
-        self.rect = pygame.Rect(0, 0, self.settings.bullet_width,
-                                self.settings.bullet_height)
+        self.image = pygame.image.load("..//recources/images/bullet.png")
+        self.rect = self.image.get_rect()
+
         self.rect.midtop = game.mouse.rect.midtop
 
         self.y = float(self.rect.y)
@@ -25,4 +25,7 @@ class Bullet(Sprite):
         self.rect.y = self.y
 
     def draw_bullet(self):
-        pygame.draw.rect(self.screen, self.color, self.rect)
+        self.screen.blit(self.image, self.rect)
+
+    """def draw_bullet(self):
+        pygame.draw.rect(self.screen, self.color, self.rect)"""

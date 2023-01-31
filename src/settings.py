@@ -13,9 +13,8 @@ class Settings:
         self.mouse_limit = 3
 
         # Settings of bullet
-        self.bullet_width = 4
+        self.bullet_width = 12
         self.bullet_height = 12
-        self.bullet_color = (0, 0, 0)
         self.bullets_allowed = 8
 
         # Settings of cats
