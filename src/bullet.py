@@ -3,16 +3,16 @@ from pygame.sprite import Sprite
 
 
 class Bullet(Sprite):
-    """Класс для управления снарядами, выпущенными мышом."""
+    """A class for controlling projectiles fired by the mouse."""
 
     def __init__(self, game):
-        """Создаёт объект снарядов в текущей позиции мыша."""
+        """Creates a projectile object at the current mouse position."""
         super().__init__()
         self.screen = game.screen
         self.settings = game.settings
         self.color = self.settings.bullet_color
 
-        # Создание снаряда в позиции (0, 0) и назначение правильной позиции.
+        # Creating a projectile at position (0, 0) and assigning the correct position.
         self.rect = pygame.Rect(0, 0, self.settings.bullet_width,
                                 self.settings.bullet_height)
         self.rect.midtop = game.mouse.rect.midtop
@@ -20,10 +20,9 @@ class Bullet(Sprite):
         self.y = float(self.rect.y)
 
     def update(self):
-        """Перемещает снаряд вверх по экрану."""
-        self.y -= self.settings.bullet_speed
+        """Moves the projectile up the screen."""
+        self.y -= self.settings.bullet_speed_factor
         self.rect.y = self.y
 
     def draw_bullet(self):
-        """Вывод снаряда на экран"""
         pygame.draw.rect(self.screen, self.color, self.rect)

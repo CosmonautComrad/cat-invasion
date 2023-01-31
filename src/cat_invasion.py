@@ -5,27 +5,28 @@ import pygame
 
 from settings import Settings
 from game_stats import GameStats
+from scoreboard import Scoreboard
 from button import Button
 from mouse import Mouse
 from bullet import Bullet
 from cat import Cat
 
 
-class AlienInvasion:
-    """Класс для управления ресурсами и поведением игры."""
+class CatInvasion:
+    """A class for managing resources and game behavior."""
 
     def __init__(self):
-        """Инициализирует игру и создаёт игровые ресурсы."""
+        """Initializes the game and creates game resources."""
         pygame.init()
         self.settings = Settings()
         self.screen = pygame.display.set_mode((self.settings.screen_width,
                                                self.settings.screen_height))
 
-        self.background = pygame.image.load("E:/cat-invasion/recources/images/BG.png").convert()
+        self.background = pygame.image.load("..//recources/images/BG.png").convert()
         pygame.display.set_caption("Cat Invasion")
 
-        # Создание экземпляра для хранения игровой статистики.
         self.stats = GameStats(self)
+        self.scoreboard = Scoreboard(self)
 
         self.mouse = Mouse(self)
         self.bullets = pygame.sprite.Group()
@@ -33,32 +34,30 @@ class AlienInvasion:
 
         self._create_fleet()
 
-        # Создание кнопки Play
         self.play_button = Button(self, "Play")
 
     def _mouse_hit(self):
-        """Обрабатывает столкновение мыши с котом."""
+        """Handles a mouse collision with a cat."""
 
         if self.stats.mice_left > 0:
 
             self.stats.mice_left -= 1
 
-            # Очистка списков котов и снарядов.
             self.cats.empty()
             self.bullets.empty()
 
-            # Создание нового флота и размещение мыши в центре.
             self._create_fleet()
             self.mouse.center_mouse()
 
             sleep(2)
 
         else:
+
             self.stats.game_active = False
             pygame.mouse.set_visible(True)
 
     def _create_cat(self, cat_number, row_number):
-        # Создание кота и размещение его в ряду
+        # Create a cat and place it in a row
         cat = Cat(self)
         cat_width, cat_height = cat.rect.size
         cat.x = cat_width + cat_width * cat_number
@@ -68,21 +67,20 @@ class AlienInvasion:
         self.cats.add(cat)
 
     def _create_fleet(self):
-        """Создание котофлота вторжения"""
-        # Создание кота и вычисление количества котов в ряду.
-        # Интервал между соседними котами равен половине ширины кота
+        """Creating an invasion fleet"""
+        # Create a cat and calculate the number of cats in a row.
+
         cat = Cat(self)
         cat_width, cat_height = cat.rect.size
 
         available_space_x = self.settings.screen_width - (2 * cat_width)
         number_cats_x = available_space_x // cat_width
 
-        """Определяет количество рядов, помещающихся на экране."""
+        """Specifies the number of rows to fit on the screen."""
         mouse_height = self.mouse.rect.height
         available_space_y = (self.settings.screen_height - (3 * cat_height) - mouse_height)
         number_rows = available_space_y // cat_height
 
-        # Создание котофлота вторжения.
         for row_number in range(number_rows):
             for cat_number in range(number_cats_x):
                 self._create_cat(cat_number, row_number)
@@ -120,7 +118,7 @@ class AlienInvasion:
             self.mouse.moving_down = False
 
     def _check_events(self):
-        """Обрабатывает нажатия клавиш и мыши."""
+        """Handles key and mouse presses."""
         for event in pygame.event.get():
 
             if event.type == pygame.QUIT:
@@ -137,73 +135,93 @@ class AlienInvasion:
                 self._check_play_button(mous_pos)
 
     def _change_fleet_direction(self):
-        """Опускает весь котофлот и меняет его направление"""
+        """Lowers the entire fleet and changes its direction."""
         for cat in self.cats.sprites():
             cat.rect.y += self.settings.fleet_drop_speed
         self.settings.fleet_direction *= -1
 
     def _check_fleet_edges(self):
-        """Реагирует на достижение котом края экрана."""
+        """Reacts when the cat reaches the edge of the screen."""
         for cat in self.cats.sprites():
             if cat.check_edges():
                 self._change_fleet_direction()
                 break
 
     def _fire_bullet(self):
-        """Создание нового снаряда и включение его в группу bullets."""
+        """Creating a new projectile and including it in the bullets group."""
         if len(self.bullets) < self.settings.bullets_allowed:
             new_bullet = Bullet(self)
             self.bullets.add(new_bullet)
 
     def _check_bullet_cat_collisions(self):
-        """Обработка коллизий снарядов с котами."""
+        """Handling collisions of shells with cats."""
         collisions = pygame.sprite.groupcollide(self.bullets, self.cats, True, True)
 
+        if collisions:
+            for cats in collisions.values():
+                self.stats.score += self.settings.cat_points * len(cats)
+            self.scoreboard.prep_score()
+            self.scoreboard.check_high_score()
+
         if not self.cats:
-            # Уничтожение существующих снарядов и создание нового флота.
+            # Destruction of existing shells and the creation of a new fleet.
             self.bullets.empty()
             self._create_fleet()
+            self.settings.increase_speed()
+
+            self.stats.level += 1
+            self.scoreboard.prep_level()
 
     def _check_cats_bottom(self):
-        """Проверяет, добрались ли коты до нижнего края экрана"""
+        """Checks if the cats have reached the bottom of the screen."""
         screen_rect = self.screen.get_rect()
         for cat in self.cats.sprites():
             if cat.rect.bottom >= screen_rect.bottom:
-                # Происходит то же, что и при столкновении с кораблем.
+                self.mouse.display_RIP()
+                self._update_screen()
+                self.mouse.display_mouse()
+
                 self._mouse_hit()
+
                 break
 
     def _check_play_button(self, mouse_pos):
-        """Запускает новую игру при нажатии кнопки Play."""
+        """Starts a new game when the Play button is pressed."""
         button_clicked = self.play_button.rect.collidepoint(mouse_pos)
         if button_clicked and not self.stats.game_active:
-            # Сброс игровой статистики.
+
+            # Reset game settings.
+            self.settings.initialize_dynamic_settings()
+
+            # Reset game statistics.
             self.stats.reset_stats()
             self.stats.game_active = True
+            self.scoreboard.prep_score()
+            self.scoreboard.prep_level()
 
-            # Очистка списков котов и снарядов
+            # Cleaning lists of cats and projectiles
             self.cats.empty()
             self.bullets.empty()
 
-            # Создание нового флота и размещение мыша в центре.
+            # Create a new fleet and place the mouse in the center.
             self._create_fleet()
             self.mouse.center_mouse()
 
-            # Указатель мыши скрывается.
+            # The mouse pointer is hidden.
             pygame.mouse.set_visible(False)
 
     def _update_bullets(self):
-        """Обновляет позиции снарядов и уничтожает старые снаряды."""
+        """Updates projectile positions and destroys old projectiles."""
 
-        """ Проверка попаданий в котов. При обнаружении попадания удалить снаряд и кота
-            Вообще говоря, тут должен был быть метод для определения пересечения нескольких прямоугольников, но у
-            pygame есть свой метод groupcollide(), который каждый раз, когда между прямоугольником снаряда 
-            и кота обнаруживается перекрытие,  добавляет пару «ключ-значение» в возвращаемый словарь."""
+        """ Checking hits on cats. If a hit is detected, remove the projectile and the cat
+        Generally speaking, there should have been a method for determining the intersection of several rectangles, 
+        but pygame has its own groupcollide() method which adds the key-value pair to the returned dictionary every 
+        time between the projectile rectangle and cat an overlap is detected."""
 
-        # Обновление позиций снарядов.
+        # Update projectile positions.
         self.bullets.update()
 
-        # Удаление снарядов, вышедших за край экрана.
+        # Removing projectiles that have gone off the edge of the screen.
         for bullet in self.bullets.copy():
             if bullet.rect.bottom <= 0:
                 self.bullets.remove(bullet)
@@ -211,38 +229,43 @@ class AlienInvasion:
         self._check_bullet_cat_collisions()
 
     def _update_screen(self):
-        """Обновляет изображения на экране и отображает новый экран."""
+        """Updates the images on the screen and displays the new screen."""
         self.screen.blit(self.background, (0, 0))
         self.mouse.blitme()
+
         for bullet in self.bullets.sprites():
             bullet.draw_bullet()
+
         self.cats.draw(self.screen)
 
-        # Кнопка Play отображается в том случае, если игра неактивна.
+        self.scoreboard.show_score()
+
+        # The Play button is displayed if the game is inactive.
         if not self.stats.game_active:
             self.play_button.draw_button()
 
-        # Отображение последнего прорисованного экрана.
+        # Display the last rendered screen.
         pygame.display.flip()
 
     def _update_cats(self):
-        """Проверяет, достиг ли кот края экрана,
-        с последующим обновлением позиций всех котов во флоте"""
+        """Checks if the cat has reached the edge of the screen,
+         with the subsequent update of the positions of all cats in the fleet"""
         self._check_fleet_edges()
         self.cats.update()
 
-        # Проверка коллизий "кот - мыш".
+        # Check for cat-mouse collisions.
         if pygame.sprite.spritecollideany(self.mouse, self.cats):
             self.mouse.display_RIP()
             self._update_screen()
             self.mouse.display_mouse()
+
             self._mouse_hit()
 
-        # Проверка, добрались ли коты до нижнего края экрана.
+        # Check if the cats have reached the bottom of the screen.
         self._check_cats_bottom()
 
-    def run_game(self):
-        """Запуск основного цикла игры."""
+    def run(self):
+        """Launching the main game loop."""
         while True:
             self._check_events()
             if self.stats.game_active:
@@ -254,6 +277,5 @@ class AlienInvasion:
 
 
 if __name__ == '__main__':
-    # Создание экземпляра и запуск игры.
-    ai = AlienInvasion()
-    ai.run_game()
+    game = CatInvasion()
+    game.run()

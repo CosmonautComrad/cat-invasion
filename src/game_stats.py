@@ -1,14 +1,17 @@
 class GameStats:
-    """Отслеживание статистики для игры Cat Invasion."""
+    """Stats tracking for Cat Invasion game."""
 
     def __init__(self, game):
-        """Инициализирует статистику"""
+        """Initializes statistics, keeps track of the state of the game."""
         self.settings = game.settings
         self.reset_stats()
 
-        # Игра Cat Invasion запускается в неактивном состоянии.
         self.game_active = False
 
+        self.high_score = 0
+
     def reset_stats(self):
-        """Инициализирует статистику, изменяющуюся в ходе игры."""
+        """Initializes statistics that change during the game."""
         self.mice_left = self.settings.mouse_limit
+        self.score = 0
+        self.level = 1
