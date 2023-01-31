@@ -42,6 +42,7 @@ class CatInvasion:
         if self.stats.mice_left > 0:
 
             self.stats.mice_left -= 1
+            self.scoreboard.prep_mice()
 
             self.cats.empty()
             self.bullets.empty()
@@ -198,6 +199,7 @@ class CatInvasion:
             self.stats.game_active = True
             self.scoreboard.prep_score()
             self.scoreboard.prep_level()
+            self.scoreboard.prep_mice()
 
             # Cleaning lists of cats and projectiles
             self.cats.empty()
@@ -268,6 +270,7 @@ class CatInvasion:
         """Launching the main game loop."""
         while True:
             self._check_events()
+
             if self.stats.game_active:
                 self.mouse.update()
                 self._update_bullets()

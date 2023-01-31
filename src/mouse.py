@@ -1,10 +1,11 @@
 import pygame
+from pygame.sprite import Sprite
 
-
-class Mouse:
+class Mouse(Sprite):
 
     def __init__(self, game):
         """Initializes the mouse and sets its initial position."""
+        super().__init__()
         self.screen = game.screen
         self.screen_rect = game.screen.get_rect()
         self.settings = game.settings
