@@ -165,7 +165,7 @@ class CatInvasion:
             self.scoreboard.check_high_score()
 
         if not self.cats:
-            # Destruction of existing shells and the creation of a new fleet.
+            # Destruction of existing bullets and the creation of a new fleet.
             self.bullets.empty()
             self._create_fleet()
             self.settings.increase_speed()
@@ -186,24 +186,30 @@ class CatInvasion:
 
                 break
 
+    def reset_stats(self):
+        self.stats.reset_stats()
+        self.stats.game_active = True
+        self.scoreboard.prep_score()
+        self.scoreboard.prep_level()
+        self.scoreboard.prep_mice()
+
+    def clean_sprites(self):
+        self.cats.empty()
+        self.bullets.empty()
+
     def _check_play_button(self, mouse_pos):
         """Starts a new game when the Play button is pressed."""
         button_clicked = self.play_button.rect.collidepoint(mouse_pos)
-        if button_clicked and not self.stats.game_active:
 
+        if button_clicked and not self.stats.game_active:
             # Reset game settings.
             self.settings.initialize_dynamic_settings()
 
             # Reset game statistics.
-            self.stats.reset_stats()
-            self.stats.game_active = True
-            self.scoreboard.prep_score()
-            self.scoreboard.prep_level()
-            self.scoreboard.prep_mice()
+            self.reset_stats()
 
             # Cleaning lists of cats and projectiles
-            self.cats.empty()
-            self.bullets.empty()
+            self.clean_sprites()
 
             # Create a new fleet and place the mouse in the center.
             self._create_fleet()
