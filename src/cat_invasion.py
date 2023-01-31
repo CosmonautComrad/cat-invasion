@@ -154,6 +154,16 @@ class CatInvasion:
             new_bullet = Bullet(self)
             self.bullets.add(new_bullet)
 
+    def start_new_level(self):
+        # Destruction of existing bullets and the creation of a new fleet.
+
+        self.bullets.empty()
+        self._create_fleet()
+        self.settings.increase_speed()
+
+        self.stats.level += 1
+        self.scoreboard.prep_level()
+
     def _check_bullet_cat_collisions(self):
         """Handling collisions of shells with cats."""
         collisions = pygame.sprite.groupcollide(self.bullets, self.cats, True, True)
@@ -165,13 +175,7 @@ class CatInvasion:
             self.scoreboard.check_high_score()
 
         if not self.cats:
-            # Destruction of existing bullets and the creation of a new fleet.
-            self.bullets.empty()
-            self._create_fleet()
-            self.settings.increase_speed()
-
-            self.stats.level += 1
-            self.scoreboard.prep_level()
+            self.start_new_level()
 
     def _check_cats_bottom(self):
         """Checks if the cats have reached the bottom of the screen."""
